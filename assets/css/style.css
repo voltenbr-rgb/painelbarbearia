@@ -81,3 +81,9 @@ body.exp{padding-left:262px}
 }
 
 #fs{margin-bottom:14px}#lr[hidden]{display:none}
+
+#side .brand{display:none!important}
+.hd{display:flex;align-items:center;gap:16px;min-width:0}
+.hlogo{width:64px;height:64px;flex:none;object-fit:contain;border-radius:16px;padding:4px;background:rgba(255,255,255,.08)}
+body[data-theme=light] .hlogo{background:#fff;border:1px solid var(--bd)}
+@media(max-width:760px){.hlogo{width:48px;height:48px;border-radius:12px}.hd{gap:12px}}
