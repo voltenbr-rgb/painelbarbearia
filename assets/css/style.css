@@ -68,3 +68,16 @@ select option{background:#1a1b1d;color:#f1f1f3}body[data-theme=light] select opt
 .s-concluido{border-color:var(--ok);color:var(--ok)}.s-cancelado,.s-faltou{border-color:var(--er);color:var(--er)}.s-aguardando{border-color:var(--wa);color:var(--wa)}
 
 #synbar{display:flex;justify-content:flex-end;align-items:center;gap:12px;margin:0 0 12px}#synbar small{color:var(--mu)}#sync:disabled{opacity:.6;cursor:wait;transform:none}
+
+.leg{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px;font-size:13px;color:var(--mu)}.leg b{color:var(--ac);margin-right:2px}
+.mrow{display:flex;gap:6px;margin:6px 0}.mrow>button{margin:0}.mrow>button:first-child{flex:1;text-align:left}.mrow>button:last-child{flex:none;white-space:nowrap}
+@media(min-width:761px){
+#side{position:fixed;left:0;top:50%;transform:translateY(-50%);height:auto;max-height:calc(100vh - 32px);margin:0 0 0 16px;overflow-y:auto;scrollbar-width:none;align-items:center;justify-content:center}
+#side::-webkit-scrollbar{display:none}
+#nav{align-items:center}
+body.exp #nav{align-items:stretch}
+body{padding-left:92px;transition:padding .25s}
+body.exp{padding-left:262px}
+}
+
+#fs{margin-bottom:14px}#lr[hidden]{display:none}
