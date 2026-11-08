@@ -2,7 +2,7 @@
 // Binding D1 esperado: DB (banco "banco-volten")
 // Opcional: variável de ambiente SYNC_TOKEN (senha de sincronização)
 
-const STORES = ["clients", "barbers", "services", "appointments", "finance", "products", "stock"];
+const STORES = ["clients", "barbers", "services", "appointments", "finance", "products", "stock", "settings"];
 
 const json = (obj, status = 200) =>
   new Response(JSON.stringify(obj), {
