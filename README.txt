@@ -63,3 +63,12 @@ PDF: Relatórios > Baixar PDF > "Salvar como PDF" na janela de impressão.
 
 --- AJUSTE (rodada 5) ---
 * Menu lateral: o botão ☰ (Expandir/Recolher menu, que mostra os nomes: Agendamentos, Clientes...) estava cortado no topo em telas baixas. Corrigido; em telas baixas os ícones ficam mais compactos.
+
+--- AJUSTES (rodada 6) ---
+* A aba "Configurações" saiu do menu das lojas. Tudo da empresa passou para ADM > Configurações e vale para TODAS as lojas:
+  logo, nome comercial, razão social, CNPJ, telefone, WhatsApp, e-mail, endereço, Instagram, horário e dias de funcionamento, tema e cor do sistema.
+  Salva com "💾 Salvar configurações" (também aparece uma barra flutuante "Salvar" quando há alteração pendente).
+* Na primeira vez, o formulário já vem preenchido com os dados que a Loja 1 tinha. Ao salvar, passam a valer para todas as lojas.
+* Backup e restauração foram para o ADM: exporta todas as lojas num arquivo e restaura numa loja escolhida (aceita backups antigos de uma loja só).
+* As preferências do ADM são conferidas a cada 30 s (mais leve para o plano gratuito do Cloudflare); só baixam de novo quando algo mudou.
+* O botão Suporte da tela inicial some dentro da área do ADM.

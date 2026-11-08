@@ -127,3 +127,8 @@ body[data-theme=light] .hlg{background:#fff;border:1px solid var(--bd)}
 @media(min-width:761px){#side{justify-content:flex-start!important}#nav{margin:auto 0}#nav #tg{flex:none}}
 @media(min-width:761px) and (max-height:900px){#nav button{height:40px}#nav{gap:3px}#side{padding:12px 10px}}
 @media(min-width:761px) and (max-height:620px){#nav button{height:36px}}
+
+/* barra flutuante "salvar" do ADM */
+#svbar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:14px;padding:8px 8px 8px 18px;border-radius:99px;background:var(--card);border:1px solid var(--ac);box-shadow:0 14px 40px -12px #000a;font-size:14px;white-space:nowrap;max-width:calc(100% - 24px)}
+#svbar[hidden]{display:none}#svbar span{color:var(--tx)}
+body.adm #hsup{display:none}
