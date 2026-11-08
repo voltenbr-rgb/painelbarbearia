@@ -8,7 +8,7 @@ const br=d=>d?d.split('-').reverse().join('/'):'';const uid=()=>Date.now().toStr
 const svo=()=>[...C.services].sort((a,b)=>a.id<b.id?-1:1),svN=id=>svo().findIndex(s=>s.id===id)+1;
 const req=r=>new Promise((a,b)=>{r.onsuccess=()=>a(r.result);r.onerror=()=>b(r.error)});
 const os=(s,m='readonly')=>DB.transaction(s,m).objectStore(s);
-const dbOpen=()=>new Promise((a,b)=>{const r=indexedDB.open('barberpro',1);r.onupgradeneeded=()=>STORES.forEach(s=>r.result.createObjectStore(s,{keyPath:'id'}));r.onsuccess=()=>{DB=r.result;a()};r.onerror=()=>b(r.error)});
+const dbOpen=()=>new Promise((a,b)=>{const r=indexedDB.open(LOJA>1?'barberpro_l'+LOJA:'barberpro',1);r.onupgradeneeded=()=>STORES.forEach(s=>r.result.createObjectStore(s,{keyPath:'id'}));r.onsuccess=()=>{DB=r.result;a()};r.onerror=()=>b(r.error)});
 const load=async()=>{for(const s of STORES)C[s]=await req(os(s).getAll())};
 const put=async(s,o,ns)=>{if(!ns)o._u=Date.now();await req(os(s,'readwrite').put(o));const i=C[s].findIndex(x=>x.id===o.id);i<0?C[s].push(o):C[s][i]=o;if(!ns)push(s,o)};
 const del=async(s,id,ns)=>{await req(os(s,'readwrite').delete(id));C[s]=C[s].filter(x=>x.id!==id);if(!ns)pushDel(s,id)};
@@ -92,7 +92,7 @@ function dash(){const t=today(),ms=t.slice(0,8)+'01',A=C.appointments,hoje=A.fil
  $('#q1').onchange=$('#q2').onchange=qf;qf()}
 /* ---------- Caixa / Comissões ---------- */
 const gav=()=>C.finance.reduce((t,x)=>{const v=+x.value||0;if(x.type==='caixa')return t+(x.kind==='aporte'?v:-v);if(x.method!=='dinheiro')return t;if(x.type==='entrada')return t+(x.recebido?+x.recebido:v)-(+x.troco||0);if(x.type==='despesa'||x.type==='retirada')return t-v;return t},0);
-const PIN0='2506',pinOk=v=>v===(S().pin||PIN0);
+const PIN0='2506';
 const askPin=title=>new Promise(res=>{const m=$('#modal');m.hidden=false;m.innerHTML=`<div class=card><h3>🔒 ${title}</h3><label>Senha de ADM<input type=password id=xp inputmode=numeric autocomplete=off></label><div class=bar style="margin-top:12px"><button class=btn id=xok>Confirmar</button><button class="btn g" id=xcn>Cancelar</button></div></div>`;
  const end=v=>{m.hidden=true;m.onclick=e=>{if(e.target.id==='modal')e.target.hidden=true};res(v)};
  m.onclick=e=>{if(e.target.id==='modal')end(false)};$('#xcn').onclick=()=>end(false);
@@ -106,7 +106,7 @@ const cxMov=(title,kind)=>cxModal(title,'<label>Senha de ADM<input type=password
  await put('finance',{id:uid(),type:'caixa',kind,desc:($('#xd').value||'').trim()||(kind==='aporte'?'Dinheiro adicionado ao caixa':'Saída do caixa'),value:v,method:'dinheiro',date:today()});close();toast(kind==='aporte'?'Dinheiro adicionado ao caixa.':'Saída registrada.');caixa()});
 const cxPw=()=>cxModal('Alterar senha de ADM','<label>Senha atual<input type=password id=xp inputmode=numeric autocomplete=off></label><label>Nova senha (mín. 4 dígitos)<input type=password id=xn inputmode=numeric autocomplete=off></label>',async close=>{
  if(!pinOk($('#xp').value)){toast('Senha atual incorreta.',1);return false}const n=$('#xn').value;if(n.length<4){toast('A nova senha precisa ter ao menos 4 dígitos.',1);return false}
- await put('settings',{...S(),pin:n,id:'main'});close();toast('Senha alterada.')});
+ await setPin(n);close();toast('Senha alterada.')});
 function caixa(){const d=$('#cd')?.value||today();const F=C.finance.filter(x=>x.date===d),sm=(ty,fn)=>F.filter(x=>x.type===ty&&(!fn||fn(x))).reduce((s,x)=>s+ +x.value,0);
  const din=sm('entrada',x=>x.method==='dinheiro'),px=sm('entrada',x=>x.method==='pix'),ct=sm('entrada',x=>['credito','debito'].includes(x.method)),ou=sm('entrada',x=>x.method==='outros'),dp=sm('despesa'),rt=sm('retirada');
  const ap=F.filter(x=>x.type==='caixa'&&x.kind==='aporte').reduce((s,x)=>s+ +x.value,0),sx=F.filter(x=>x.type==='caixa'&&x.kind!=='aporte').reduce((s,x)=>s+ +x.value,0),tr=F.reduce((s,x)=>s+(+x.troco||0),0);
@@ -159,7 +159,7 @@ const dl=(n,txt,type)=>{const a=document.createElement('a');a.href=URL.createObj
 const PK=['#22c55e','#d9ad3c','#06b6d4','#7c5cff','#ef4444','#ec4899'];
 function theme(){document.body.classList.toggle('exp',!!localStorage.bdpExp);document.body.dataset.theme=localStorage.bdpTheme||'dark';localStorage.bdpAc?document.body.style.setProperty('--ac',localStorage.bdpAc):document.body.style.removeProperty('--ac')}
 function tick(){const d=new Date(),h=d.getHours(),g=h<12?'Bom dia':h<18?'Boa tarde':'Boa noite',s=S();$('#gr').innerHTML=`${g},<br><span>${esc(s.name)}</span> 👋`;$('#ck').textContent=d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});$('#dt').textContent=d.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});$('#wn').textContent=s.name;$('#wl').src=s.logo||'assets/icons/icon-192.png';const hl=s.logo||'assets/icons/icon-192.png';document.querySelectorAll('.hlogo').forEach(i=>{if(i.getAttribute('src')!==hl)i.src=hl})}
-function brand(){const s=S();$('#bn').textContent=s.name;$('#logo').src=s.logo||'assets/icons/icon-192.png';tick()}
+function brand(){const s=S();if(LOJA===1)try{localStorage.setItem('bp_h',JSON.stringify({name:s.name,logo:s.logo||''}))}catch{}$('#bn').textContent=s.name;$('#logo').src=s.logo||'assets/icons/icon-192.png';tick()}
 function settings(){const s=S(),F=[['name','Nome comercial'],['legal','Razão social'],['cnpj','CNPJ'],['phone','Telefone'],['whatsapp','WhatsApp'],['email','E-mail'],['address','Endereço'],['insta','Instagram']];
  $('#view').innerHTML=`<div class=bar><h2>Configurações e Personalização</h2></div><form id=sf class=card><h3>Empresa</h3><div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">${s.logo?`<img src="${s.logo}" height=64>`:'<span class=mu>Sem logo</span>'}<input type=file id=lg accept="image/*"><button type=button class="btn g" id=rl>Remover logo</button></div><div class=row2>${F.map(f=>`<label>${f[1]}<input name=${f[0]} value="${esc(s[f[0]])}"></label>`).join('')}<label>Abre às<input type=time name=open value=${s.open}></label><label>Fecha às<input type=time name=close value=${s.close}></label></div><label>Dias de funcionamento</label>${['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map((d,i)=>`<label style="display:inline-block;margin-right:10px"><input type=checkbox style="width:auto" name=d value=${i} ${s.days.split(',').includes(String(i))?'checked':''}> ${d}</label>`).join('')}<div class=bar style="margin-top:12px"><button class=btn>Salvar</button></div></form>
  <div class=card><h3>Aparência</h3><div class=bar><button class="btn g" id=th>Alternar Dark/Light</button><div class=swatch>${PK.map(c=>`<button style="background:${c}" data-c=${c}></button>`).join('')}<input type=color id=cp value="${localStorage.bdpAc||'#22c55e'}"></div><button class="btn g" id=rs>Restaurar tema</button></div></div>
@@ -174,7 +174,7 @@ function settings(){const s=S(),F=[['name','Nome comercial'],['legal','Razão so
  $('#sp2').onclick=supOpen;$('#th').onclick=()=>{localStorage.bdpTheme=document.body.dataset.theme==='dark'?'light':'dark';theme()};
  document.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{localStorage.bdpAc=b.dataset.c;theme()});$('#cp').oninput=e=>{localStorage.bdpAc=e.target.value;theme()};
  $('#rs').onclick=()=>{localStorage.removeItem('bdpTheme');localStorage.removeItem('bdpAc');theme();settings()};
- $('#pf').onsubmit=async e=>{e.preventDefault();if(!pinOk($('#p0').value))return toast('Senha atual incorreta.',1);const n=$('#p1').value;if(n.length<4)return toast('A nova senha precisa ter ao menos 4 dígitos.',1);if(n!==$('#p2').value)return toast('A confirmação não confere.',1);await put('settings',{...S(),pin:n,id:'main'});$('#pf').reset();toast('Senha de ADM alterada.')};
+ $('#pf').onsubmit=async e=>{e.preventDefault();if(!pinOk($('#p0').value))return toast('Senha atual incorreta.',1);const n=$('#p1').value;if(n.length<4)return toast('A nova senha precisa ter ao menos 4 dígitos.',1);if(n!==$('#p2').value)return toast('A confirmação não confere.',1);await setPin(n);$('#pf').reset();toast('Senha de ADM alterada.')};
  $('#bk').onclick=()=>dl(`backup-barber-${today()}.json`,JSON.stringify({app:'barber-dashboard-pro',v:1,at:new Date().toISOString(),data:C}),'application/json');
  $('#ri').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const j=JSON.parse(await f.text());if(j.app!=='barber-dashboard-pro'||!STORES.every(s=>Array.isArray(j.data?.[s])))throw 0;
   if(!confirm('Importar este backup substituirá TODOS os dados atuais. Continuar?'))return;for(const s of STORES){await req(os(s,'readwrite').clear());for(const o of j.data[s])await req(os(s,'readwrite').put({...o,_u:Date.now()}))}await load();brand();toast('Backup restaurado.');settings()}catch{toast('Arquivo de backup inválido.',1)}}}
@@ -182,32 +182,122 @@ function settings(){const s=S(),F=[['name','Nome comercial'],['legal','Razão so
 const NAV=[['dash','📊 Dashboard',dash],['appointments','📅 Agendamentos',()=>crud('appointments')],['clients','👥 Clientes',()=>crud('clients')],['barbers','💈 Barbeiros',()=>crud('barbers')],['services','✂️ Serviços',()=>crud('services')],['finance','💰 Financeiro',()=>crud('finance')],['caixa','🧾 Caixa',caixa],['products','📦 Estoque',()=>crud('products')],['comm','🏷 Comissões',comm],['reports','📄 Relatórios',reports],['settings','⚙️ Configurações',settings]];
 function go(id){const n=NAV.find(x=>x[0]===id)||NAV[0];$('#modal').hidden=true;[...$('#nav').children].forEach(b=>b.classList.toggle('on',b.dataset.id===n[0]));n[2]();location.hash=n[0]}
 /* ===== Sincronização com Cloudflare D1 (/api/salvar) ===== */
-const API='/api/salvar',SYN=STORES,QK='bp_q',TK='bp_tk';let rdy=0,busy=0;
-const qget=()=>{try{return JSON.parse(localStorage.getItem(QK)||'{}')}catch{return{}}},qset=q=>{try{localStorage.setItem(QK,JSON.stringify(q))}catch{}};
-async function api(method,body,ask){const go1=()=>{const h={'Content-Type':'application/json'},t=localStorage.getItem(TK);if(t)h['x-sync-token']=t;return fetch(API,{method,headers:h,cache:'no-store',body:body&&JSON.stringify(body)})};
+const API='/api/salvar',SYN=STORES,TK='bp_tk';let rdy=0,busy=0,LOJA=1,curSync=Promise.resolve();
+const qk=()=>LOJA>1?'bp_q_'+LOJA:'bp_q',sn=s=>LOJA>1?s+'@'+LOJA:s;
+const qget=(k=qk())=>{try{return JSON.parse(localStorage.getItem(k)||'{}')}catch{return{}}},qset=(q,k=qk())=>{try{localStorage.setItem(k,JSON.stringify(q))}catch{}};
+async function api(method,body,ask,qs=''){const go1=()=>{const h={'Content-Type':'application/json'},t=localStorage.getItem(TK);if(t)h['x-sync-token']=t;return fetch(API+qs,{method,headers:h,cache:'no-store',body:body&&JSON.stringify(body),signal:AbortSignal.timeout?AbortSignal.timeout(12000):undefined})};
  let r=await go1();if(r.status===401&&ask){const t=prompt('Informe a senha de sincronização:');if(!t)throw new Error('Senha necessária');localStorage.setItem(TK,t);r=await go1()}
  const j=await r.json().catch(()=>({}));if(!r.ok||j.error)throw new Error(j.error||'Erro HTTP '+r.status);return j}
 const stPristine=o=>(o.name||'Minha Barbearia')==='Minha Barbearia'&&!o.logo&&!o.pin&&!['legal','cnpj','phone','whatsapp','email','address','insta'].some(k=>o[k]);
-const rec=(s,o)=>({store:s,id:o.id,data:JSON.stringify(o),updated:o._u||Date.now(),deleted:0});
+const rec=(s,o)=>({store:sn(s),id:o.id,data:JSON.stringify(o),updated:o._u||Date.now(),deleted:0});
 const push=(s,o)=>{if(!SYN.includes(s))return;const q=qget();q[s+'/'+o.id]=rec(s,o);qset(q);flush().catch(()=>{})};
-const pushDel=(s,id)=>{if(!SYN.includes(s))return;const q=qget();q[s+'/'+id]={store:s,id,data:'',updated:Date.now(),deleted:1};qset(q);flush().catch(()=>{})};
-async function flush(ask){const q=qget(),v=Object.values(q);if(!v.length||!navigator.onLine)return;await api('POST',{records:v},ask);const n=qget();Object.keys(q).forEach(k=>{if(n[k]&&n[k].updated===q[k].updated&&n[k].deleted===q[k].deleted)delete n[k]});qset(n)}
-async function sync(silent){if(busy)return;busy=1;const b=$('#sync');if(b){b.disabled=true;b.textContent='⏳ Sincronizando...'}
- try{await flush(!silent);const j=await api('GET',null,!silent),R=j.records||[],m={};R.forEach(r=>m[r.store+'/'+r.id]=r);
-  const up=[];for(const s of SYN)for(const o of C[s]){const r=m[s+'/'+o.id];if(s==='settings'&&stPristine(o)&&r)continue;if(s==='settings'&&stPristine(o)&&!r)continue;if(!r||(o._u||0)>r.updated){if(!o._u){o._u=Date.now();await put(s,o,1)}up.push(rec(s,o))}}
+const pushDel=(s,id)=>{if(!SYN.includes(s))return;const q=qget();q[s+'/'+id]={store:sn(s),id,data:'',updated:Date.now(),deleted:1};qset(q);flush().catch(()=>{})};
+async function flush(ask){const k=qk(),q=qget(k),v=Object.values(q);if(!v.length||!navigator.onLine)return;await api('POST',{records:v},ask);const n=qget(k);Object.keys(q).forEach(x=>{if(n[x]&&n[x].updated===q[x].updated&&n[x].deleted===q[x].deleted)delete n[x]});qset(n,k)}
+function sync(silent){if(busy)return curSync;busy=1;return curSync=syncRun(silent).finally(()=>{busy=0})}
+async function syncRun(silent){const b=$('#sync');if(b){b.disabled=true;b.textContent='⏳ Sincronizando...'}
+ try{await flush(!silent);const j=await api('GET',null,!silent,'?loja='+LOJA),R=j.records||[],m={};R.forEach(r=>m[r.store+'/'+r.id]=r);
+  const up=[];for(const s of SYN)for(const o of C[s]){const r=m[sn(s)+'/'+o.id];if(s==='settings'&&stPristine(o))continue;if(!r||(o._u||0)>r.updated){if(!o._u){o._u=Date.now();await put(s,o,1)}up.push(rec(s,o))}}
   if(up.length)await api('POST',{records:up},!silent);
-  let ch=0;for(const r of R){if(!SYN.includes(r.store))continue;const l=C[r.store].find(x=>x.id===r.id);if(l&&(l._u||0)>=r.updated&&!(r.store==='settings'&&stPristine(l)))continue;
-   if(r.deleted){if(l){await del(r.store,r.id,1);ch++}}else{await put(r.store,{...JSON.parse(r.data),_u:r.updated},1);ch++}}
+  let ch=0;for(const r of R){const bs=r.store.split('@')[0];if(!SYN.includes(bs)||sn(bs)!==r.store)continue;const l=C[bs].find(x=>x.id===r.id);if(l&&(l._u||0)>=r.updated&&!(bs==='settings'&&stPristine(l)))continue;
+   if(r.deleted){if(l){await del(bs,r.id,1);ch++}}else{await put(bs,{...JSON.parse(r.data),_u:r.updated},1);ch++}}
   const i=$('#syncinfo');if(i)i.textContent='Última sincronização: '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   if(ch&&rdy){brand();if(!document.activeElement||!/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)&&$('#modal').hidden)go(location.hash.slice(1))}
   if(!silent)toast(ch?`Sincronizado: ${ch} registro(s) atualizado(s).`:'Tudo atualizado.')}
  catch(e){if(!silent)toast('Falha ao sincronizar: '+e.message,1)}
- finally{busy=0;if(b){b.disabled=false;b.textContent='🔄 Sincronizar Dados'}}}
-addEventListener('online',()=>{flush().catch(()=>{});sync(true)});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&rdy)sync(true)});setInterval(()=>{if(!document.hidden&&rdy&&navigator.onLine)sync(true)},60000);
-(async()=>{theme();try{await dbOpen();await load()}catch(e){document.body.innerHTML='<p style="padding:30px">Seu navegador bloqueou o armazenamento local (IndexedDB). Saia do modo anônimo.</p>';return}
- if(!C.settings.length){try{await sync(true)}catch{}await put('settings',S(),1);if(!C.services.length)for(const [n,p,d,c] of [['Corte masculino',40,40,'Cabelo'],['Corte degradê',50,45,'Cabelo'],['Barba',30,30,'Barba'],['Corte + barba',70,70,'Combo'],['Sobrancelha',15,15,'Estética'],['Pigmentação',60,60,'Estética'],['Hidratação',45,40,'Tratamento']])await put('services',{id:uid(),name:n,price:p,dur:d,cat:c,active:'1',desc:''});if(!C.barbers.length)await put('barbers',{id:uid(),name:'Barbeiro 1',comm:40,role:'admin'})}
- $('#nav').innerHTML='<button id=tg title="Expandir/recolher menu"><i>☰</i><span>Recolher menu</span></button>'+NAV.map(n=>{const[a,...r]=n[1].split(' ');return `<button data-id=${n[0]} title="${r.join(' ')}"><i>${a}</i><span>${r.join(' ')}</span></button>`}).join('')+'<button id=sup title="Suporte (WhatsApp)"><i>🆘</i><span>Suporte</span></button>'+(isInst()?'':'<button id=ins title="Instalar app"><i>💈</i><span>Instalar app</span></button>');$('#nav').onclick=async e=>{const b=e.target.closest('button');if(!b)return;if(b.id==='tg'){const x=document.body.classList.toggle('exp');localStorage.bdpExp=x?'1':'';return}if(b.id==='sup'){supOpen();return}if(b.id==='ins'){if(dp){dp.prompt();await dp.userChoice;dp=null}else alert('Para instalar: no Android/Chrome abra o menu ⋮ e toque em "Instalar app"; no iPhone use Compartilhar > "Adicionar à Tela de Início"; no computador use o ícone de instalar na barra de endereço.');return}go(b.dataset.id)};$('#gs').onkeydown=e=>{if(e.key==='Enter'){go('clients');$('#q').value=e.target.value;$('#q').dispatchEvent(new Event('input'))}};setInterval(tick,20000);$('#modal').onclick=e=>{if(e.target.id==='modal')e.target.hidden=true};
- $('#sync').onclick=()=>sync();rdy=1;brand();go(location.hash.slice(1));sync(true);setTimeout(()=>$('#splash').classList.add('off'),700);if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js').catch(()=>{})})();
+ finally{if(b){b.disabled=false;b.textContent='🔄 Sincronizar Dados'}}}
+addEventListener('online',()=>{if(rdy){flush().catch(()=>{});sync(true)}});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&rdy)sync(true)});setInterval(()=>{if(!document.hidden&&rdy&&navigator.onLine)sync(true)},60000);
+
+/* ===== Multi-lojas: configuração global, tela inicial, ADM e Master ===== */
+const GK='bp_global',MASTER0='1989',MAXL=10;let ADMS=0,SN={},ADMP={p:'mes',a:'',b:''};
+let GL=(()=>{try{return JSON.parse(localStorage.getItem(GK))||{}}catch{return{}}})();GL.lojas=GL.lojas||{stores:[]};GL.adm=GL.adm||{};
+const gsave=()=>{try{localStorage.setItem(GK,JSON.stringify(GL))}catch{}};
+/* lojas liberadas pelo master (a Loja 1 sempre existe) */
+const lojaList=()=>{const st=GL.lojas.stores||[],l=[{n:1,name:(st.find(x=>x.n===1)||{}).name||'Loja 1'}];st.filter(x=>x.n>1&&x.on).forEach(x=>l.push({n:x.n,name:x.name||'Loja '+x.n}));return l.sort((a,b)=>a.n-b.n)};
+const lname=n=>(lojaList().find(x=>x.n===n)||{}).name||'Loja '+n,lActive=n=>lojaList().some(x=>x.n===n);
+/* preferências do ADM (sincronizadas pelo banco, registro global/adm) */
+async function gpushAdm(){const u=GL.adm._u;if(!GL.adm._d)return;await api('POST',{records:[{store:'global',id:'adm',data:JSON.stringify(GL.adm),updated:u,deleted:0}]});if(GL.adm._u===u){GL.adm._d=0;gsave()}}
+function gset(id,patch){GL[id]={...GL[id],...patch,_u:Date.now(),_d:1};gsave();gpushAdm().catch(()=>{})}
+async function gsync(){const before=JSON.stringify([GL.lojas,GL.adm]);try{const j=await api('GET',null,0,'?store=global');for(const r of j.records||[]){if(!['lojas','adm'].includes(r.id)||r.deleted)continue;const l=GL[r.id]||{};if(r.updated>(l._u||0)){try{GL[r.id]={...JSON.parse(r.data),_u:r.updated,_d:0}}catch{}}}
+ if(GL.adm._d)await gpushAdm();gsave()}catch{}return JSON.stringify([GL.lojas,GL.adm])!==before}
+const pinOk=v=>v===(GL.adm.pin||S().pin||PIN0),admPin=()=>GL.adm.pin||PIN0;
+async function setPin(n){await put('settings',{...S(),pin:n,id:'main'});gset('adm',{pin:n})}
+/* abre o banco local da loja N (Loja 1 = banco original, para não perder dados antigos) */
+async function openStore(n){await curSync;if(DB)DB.close();LOJA=n;C={};await dbOpen();await load();
+ if(!C.settings.length){try{await sync(true)}catch{}await put('settings',S(),1);if(!C.services.length)for(const [a,p,d,c] of [['Corte masculino',40,40,'Cabelo'],['Corte degradê',50,45,'Cabelo'],['Barba',30,30,'Barba'],['Corte + barba',70,70,'Combo'],['Sobrancelha',15,15,'Estética'],['Pigmentação',60,60,'Estética'],['Hidratação',45,40,'Tratamento']])await put('services',{id:uid(),name:a,price:p,dur:d,cat:c,active:'1',desc:''});if(!C.barbers.length)await put('barbers',{id:uid(),name:'Barbeiro 1',comm:40,role:'admin'})}}
+const hcache=()=>{try{return JSON.parse(localStorage.getItem('bp_h'))||{}}catch{return{}}};
+async function enter(n,pg){if(!lActive(n)){toast('Esta loja não está liberada.',1);return}
+ try{await openStore(n)}catch(e){toast('Erro ao abrir a loja: '+e.message,1);return}
+ try{sessionStorage.setItem('bp_in',n)}catch{}
+ ADMS=0;document.body.classList.remove('home');$('#modal').hidden=true;rdy=1;brand();$('#lojatag').textContent=lojaList().length>1?'🏪 '+lname(n):'';go(pg||'dash');sync(true)}
+function showHome(){rdy=0;ADMS=0;try{sessionStorage.removeItem('bp_in')}catch{}document.body.classList.add('home');$('#modal').hidden=true;renderHome()}
+function renderHome(){const hc=hcache(),H=$('#home');
+ H.innerHTML=`<button id=mstr aria-hidden=true tabindex=-1></button><div class=hm><img class=hlg src="${esc(hc.logo||'assets/icons/icon-192.png')}" alt=""><h1>${esc(hc.name||'Barber Dashboard PRO')}</h1><p class="mu sub">Como você deseja entrar?</p><div class=hcards><button class=hc id=hl><i>🏪</i><b>Loja</b><small>Agenda, caixa, clientes e estoque</small></button><button class=hc id=ha><i>🔐</i><b>ADM</b><small>Resumo, relatórios e configurações</small></button></div><p class="mu hf">Barber Dashboard PRO</p></div>`;
+ $('#hl').onclick=()=>{const a=lojaList();a.length===1?enter(a[0].n):pickStore()};$('#ha').onclick=admLogin;$('#mstr').onclick=masterLogin}
+function pickStore(){const m=$('#modal');m.hidden=false;m.innerHTML=`<div class=card><h3>Escolha a loja</h3>${lojaList().map(x=>`<div class=mrow><button class="btn g" data-n=${x.n}>🏪 ${esc(x.name)}</button></div>`).join('')}<button class="btn g" id=xcn style="margin-top:6px">Cancelar</button></div>`;
+ m.onclick=e=>{const b=e.target.closest('[data-n]');if(b){m.hidden=true;enter(+b.dataset.n)}else if(e.target.id==='modal'||e.target.id==='xcn')m.hidden=true}}
+/* ----- ADM ----- */
+function admLogin(){const m=$('#modal');m.hidden=false;m.innerHTML=`<form class=card><h3>🔐 Acesso ADM</h3><label>Nome<input id=an autocomplete=off value="${esc(GL.adm.name||'')}"></label><label>Senha<input type=password id=ap inputmode=numeric autocomplete=off></label><div class=bar style="margin-top:12px"><button class=btn>Entrar</button><button type=button class="btn g" id=xcn>Cancelar</button></div></form>`;
+ m.onclick=e=>{if(e.target.id==='modal'||e.target.id==='xcn')m.hidden=true};setTimeout(()=>$(GL.adm.name?'#ap':'#an')?.focus(),50);
+ m.querySelector('form').onsubmit=e=>{e.preventDefault();const nome=$('#an').value.trim(),pw=$('#ap').value;if(!nome)return toast('Informe seu nome.',1);if(pw!==admPin()){toast('Senha incorreta.',1);$('#ap').value='';return}m.hidden=true;if(nome!==GL.adm.name)gset('adm',{name:nome});admShow()}}
+const kpi=(D,a,b)=>{a=a||'0000';b=b||'9999';const E=D.finance.filter(x=>x.date>=a&&x.date<=b),en=E.filter(x=>x.type==='entrada'),ent=en.reduce((s,x)=>s+(+x.value||0),0),sai=E.filter(x=>x.type==='despesa'||x.type==='retirada').reduce((s,x)=>s+(+x.value||0),0);
+ return {ent,sai,saldo:ent-sai,ne:en.length,tk:en.length?ent/en.length:0,at:D.appointments.filter(x=>x.status==='concluido'&&x.date>=a&&x.date<=b).length,novos:D.clients.filter(c=>c.created>=a&&c.created<=b).length,cli:D.clients.length}};
+async function snapAll(){const o={};for(const x of lojaList()){try{await openStore(x.n);await sync(true);o[x.n]={D:C,s:S()}}catch(e){o[x.n]={D:null}}}return o}
+async function admShow(){ADMS=1;document.body.classList.add('home');$('#home').innerHTML='<div class=hm><div class=empty>Carregando lojas…</div></div>';await gsync();SN=await snapAll();if(ADMS)admRender()}
+const scopeList=()=>{const all=lojaList().map(x=>x.n),s=GL.adm.scope;if(s==null||s==='all')return all;const r=all.filter(n=>[].concat(s).includes(n));return r.length?r:all};
+function admRender(){const t=today(),ms=t.slice(0,8)+'01',L=lojaList(),main=lActive(+GL.adm.main)?+GL.adm.main:1,D0=(SN[main]||{}).D,mk=(a,b)=>`<div class=kpi><small>${a}</small><b>${b}</b></div>`;
+ const co=n=>{const s=(SN[n]||{}).s;return s&&s.name&&s.name!=='Minha Barbearia'?s.name:''};
+ const cards=L.map(x=>{const d=(SN[x.n]||{}).D;if(!d)return `<div class=card><b>${esc(x.name)}</b><p class=mu>Não foi possível carregar esta loja.</p></div>`;
+  const a=kpi(d,t,t),b=kpi(d,ms,t),ag=d.appointments.filter(z=>z.date===t&&z.status!=='cancelado').length;
+  return `<div class=card><div class=bar><div><b style="font-size:17px">${esc(x.name)}</b>${co(x.n)?`<br><small class=mu>${esc(co(x.n))}</small>`:''}</div>${x.n===main?'<span class="tag ok">Principal</span>':''}</div><div class=grid style="grid-template-columns:1fr 1fr;margin:10px 0">${mk('Hoje',money(a.ent))}${mk('Mês',money(b.ent))}${mk('Agend. hoje',ag)}${mk('Clientes',b.cli)}</div><button class=btn data-open=${x.n}>Abrir ${esc(x.name)}</button></div>`}).join('');
+ let res='';if(D0){const T=kpi(D0,'0000','9999'),h=kpi(D0,t,t),mm=kpi(D0,ms,t),A=D0.appointments;
+  res=`<h3 style="margin:18px 0 10px">Resumo — ${esc(lname(main))}</h3><div class=grid>${mk('Faturamento hoje',money(h.ent))}${mk('Faturamento do mês',money(mm.ent))}${mk('Faturamento total',money(T.ent))}${mk('Agendamentos hoje',A.filter(a=>a.date===t).length)}${mk('Atendimentos concluídos',T.at)}${mk('Pendentes',A.filter(a=>['aguardando','confirmado','atendimento'].includes(a.status)).length)}${mk('Clientes',T.cli)}${mk('Ticket médio',money(T.tk))}</div>`}
+ $('#home').innerHTML=`<div class=hm><div class=ah><h2>Olá, ${esc(GL.adm.name||'ADM')} 👋</h2><button class="btn g" id=aout>← Sair do ADM</button></div>
+ <h3 style="margin:0 0 10px">Suas lojas</h3><div class=g2 style="margin-bottom:6px">${cards}</div>${res}
+ <div class=card style="margin-top:14px"><h3>📄 Relatório</h3><label>Lojas incluídas no relatório</label><div id=rsc><label class=ck><input type=checkbox id=rall> Todas as lojas</label>${L.map(x=>`<label class=ck><input type=checkbox data-rn=${x.n}> ${esc(x.name)}</label>`).join('')}</div><div class=row2><label>Período<select id=rpp>${[['hoje','Hoje'],['ontem','Ontem'],['7','Últimos 7 dias'],['30','Últimos 30 dias'],['mes','Este mês'],['ant','Mês anterior'],['custom','Personalizado']].map(o=>`<option value=${o[0]} ${o[0]===ADMP.p?'selected':''}>${o[1]}</option>`).join('')}</select></label></div><div class=row2 id=rcu ${ADMP.p==='custom'?'':'hidden'}><label>De<input type=date id=rca value="${ADMP.a}"></label><label>Até<input type=date id=rcb value="${ADMP.b}"></label></div><div id=rpt style="margin-top:10px"></div><div class=bar style="margin-top:12px"><button class=btn id=rpdf>⬇ Baixar PDF</button><button class="btn g" id=rcsv>Exportar CSV</button></div><p class=mu>O que você marcar aqui fica salvo para a próxima vez que entrar.</p></div>
+ <div class=card><h3>⚙️ Configurações do ADM</h3><div class=row2><label>Loja principal<select id=cm>${L.map(x=>`<option value=${x.n} ${x.n===main?'selected':''}>${esc(x.name)}</option>`).join('')}</select></label><label>Ao abrir o aplicativo<select id=cs><option value=home>Mostrar a tela inicial</option><option value=store ${GL.adm.startup==='store'?'selected':''}>Abrir direto na loja principal</option></select></label><label>Seu nome<input id=cn value="${esc(GL.adm.name||'')}"></label></div>
+ <h3 style="margin-top:18px">🔑 Alterar senha de ADM</h3><div class=row2><label>Senha atual<input type=password id=c0 inputmode=numeric autocomplete=off></label><label>Nova senha (mín. 4 dígitos)<input type=password id=c1 inputmode=numeric autocomplete=off></label><label>Confirmar nova senha<input type=password id=c2 inputmode=numeric autocomplete=off></label></div><div class=bar style="margin-top:12px"><button class=btn id=cpb>Alterar senha</button></div></div></div>`;
+ const H=$('#home');H.onclick=e=>{const b=e.target.closest('[data-open]');if(b)enter(+b.dataset.open);if(e.target.id==='aout')showHome()};
+ $('#cm').onchange=e=>{gset('adm',{main:+e.target.value});toast('Loja principal salva.');admRender()};$('#cs').onchange=e=>{gset('adm',{startup:e.target.value});toast(e.target.value==='store'?'O app vai abrir direto na loja principal.':'O app vai abrir na tela inicial.')};
+ $('#cn').onchange=e=>{if(e.target.value.trim()){gset('adm',{name:e.target.value.trim()});toast('Nome salvo.')}};
+ $('#cpb').onclick=()=>{if($('#c0').value!==admPin())return toast('Senha atual incorreta.',1);const n=$('#c1').value;if(n.length<4)return toast('A nova senha precisa ter ao menos 4 dígitos.',1);if(n!==$('#c2').value)return toast('A confirmação não confere.',1);gset('adm',{pin:n});['#c0','#c1','#c2'].forEach(i=>$(i).value='');toast('Senha de ADM alterada.')};
+ /* relatório */
+ const sync_ck=()=>{const sc=scopeList();$('#rall').checked=sc.length===L.length;H.querySelectorAll('[data-rn]').forEach(c=>c.checked=sc.includes(+c.dataset.rn))};
+ $('#rsc').onchange=e=>{if(e.target.id==='rall')gset('adm',{scope:e.target.checked?'all':[main]});else{const v=[...H.querySelectorAll('[data-rn]:checked')].map(c=>+c.dataset.rn);gset('adm',{scope:!v.length||v.length===L.length?'all':v})}sync_ck();drawRep()};
+ const rrows=()=>{const[a,b]=rng(ADMP.p,ADMP.a,ADMP.b),rows=scopeList().map(n=>({n,name:lname(n),d:(SN[n]||{}).D})).filter(r=>r.d).map(r=>({...r,k:kpi(r.d,a,b)}));return{a,b,rows}};
+ const tbl=()=>{const{a,b,rows}=rrows(),h=['Loja','Atend. concluídos','Entradas','Saídas','Saldo','Ticket médio','Clientes novos','Clientes'],f=money;
+  const T=rows.reduce((s,r)=>({ent:s.ent+r.k.ent,sai:s.sai+r.k.sai,at:s.at+r.k.at,ne:s.ne+r.k.ne,novos:s.novos+r.k.novos,cli:s.cli+r.k.cli}),{ent:0,sai:0,at:0,ne:0,novos:0,cli:0});
+  const body=rows.map(r=>[r.name,r.k.at,f(r.k.ent),f(r.k.sai),f(r.k.saldo),f(r.k.tk),r.k.novos,r.k.cli]);if(rows.length>1)body.push(['TOTAL',T.at,f(T.ent),f(T.sai),f(T.ent-T.sai),f(T.ne?T.ent/T.ne:0),T.novos,T.cli]);return{h,body,a,b,n:rows.length}};
+ const drawRep=()=>{const r=tbl();$('#rpt').innerHTML=r.body.length?`<table><thead><tr>${r.h.map(x=>`<th>${x}`).join('')}</tr></thead><tbody>${r.body.map((l,i)=>`<tr ${r.n>1&&i===r.body.length-1?'class=rtot':''}>${l.map(c=>`<td>${esc(c)}`).join('')}</tr>`).join('')}</tbody></table>`:'<div class=empty>Sem dados.</div>'};
+ $('#rpp').onchange=e=>{ADMP.p=e.target.value;$('#rcu').hidden=ADMP.p!=='custom';drawRep()};$('#rca').onchange=e=>{ADMP.a=e.target.value;drawRep()};$('#rcb').onchange=e=>{ADMP.b=e.target.value;drawRep()};
+ $('#rcsv').onclick=()=>{const r=tbl();dl('relatorio-lojas.csv','﻿'+[r.h,...r.body].map(l=>l.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n'),'text/csv')};
+ $('#rpdf').onclick=()=>{const r=tbl(),hc=hcache(),w=window.open('','_blank');if(!w)return toast('Permita pop-ups para gerar o PDF.',1);
+  w.document.write(`<html><head><title>Relatório de lojas</title><style>body{font:13px system-ui;margin:24px;color:#111}header{display:flex;gap:14px;align-items:center;border-bottom:3px solid #16a34a;padding-bottom:10px;margin-bottom:14px}img{height:56px}table{width:100%;border-collapse:collapse}th{background:#16a34a;color:#fff;text-align:left}td,th{padding:6px;border-bottom:1px solid #ddd}tr.rtot td{font-weight:700}</style></head><body><header>${hc.logo?`<img src="${hc.logo}">`:''}<div><h2 style="margin:0">${esc(hc.name||'Barber Dashboard PRO')}</h2>Relatório de lojas · Período: ${r.a?br(r.a):'início'} a ${r.b?br(r.b):'hoje'} · Emitido em ${new Date().toLocaleString('pt-BR')}</div></header><table><thead><tr>${r.h.map(x=>`<th>${x}`).join('')}</tr></thead><tbody>${r.body.map((l,i)=>`<tr ${r.n>1&&i===r.body.length-1?'class=rtot':''}>${l.map(c=>`<td>${esc(c)}`).join('')}</tr>`).join('')}</tbody></table></body></html>`);w.document.close();setTimeout(()=>w.print(),400)};
+ sync_ck();drawRep()}
+/* ----- MASTER (botão invisível no canto superior direito da tela inicial) ----- */
+async function masterOk(pin){try{const h={'x-master-pin':pin},t=localStorage.getItem(TK);if(t)h['x-sync-token']=t;const r=await fetch(API+'?verify=master',{headers:h,cache:'no-store',signal:AbortSignal.timeout?AbortSignal.timeout(6000):undefined});if(r.status===403)return false;const j=await r.json().catch(()=>({}));if(r.ok&&j.master===true)return true}catch{}return pin===MASTER0}
+function masterLogin(){const m=$('#modal');m.hidden=false;m.innerHTML=`<form class=card><h3>🛠 Master</h3><label>Senha master<input type=password id=mp inputmode=numeric autocomplete=off></label><div class=bar style="margin-top:12px"><button class=btn>Entrar</button><button type=button class="btn g" id=xcn>Cancelar</button></div></form>`;
+ m.onclick=e=>{if(e.target.id==='modal'||e.target.id==='xcn')m.hidden=true};setTimeout(()=>$('#mp')?.focus(),50);
+ m.querySelector('form').onsubmit=async e=>{e.preventDefault();const pin=$('#mp').value;if(!pin)return;const b=m.querySelector('.btn');b.disabled=true;const ok=await masterOk(pin);b.disabled=false;if(!ok){toast('Senha master incorreta.',1);$('#mp').value='';return}masterPanel(pin)}}
+function masterPanel(pin){const m=$('#modal'),st=GL.lojas.stores||[],slot=n=>st.find(x=>x.n===n)||{n,name:'',on:n===1};
+ m.innerHTML=`<form class=card><h3>🛠 Painel Master</h3><p class=mu>Marque as lojas liberadas para este cliente. O ADM dele só enxerga as lojas ativas.</p>${Array.from({length:MAXL},(_,i)=>{const x=slot(i+1);return `<div class=mrow style="align-items:center"><label style="margin:0;display:flex;gap:8px;align-items:center;flex:none;width:96px;color:var(--tx)"><input type=checkbox style="width:auto" name=on${i+1} ${x.on||i===0?'checked':''} ${i===0?'disabled':''}> Loja ${i+1}</label><input name=nm${i+1} placeholder="Nome (opcional)" value="${esc(x.name||'')}" style="flex:1;min-width:0"></div>`}).join('')}<div class=bar style="margin-top:14px"><button class=btn>Salvar desbloqueio</button><button type=button class="btn g" id=mrs>Redefinir senha ADM (2506)</button><button type=button class="btn g" id=xcn>Fechar</button></div></form>`;
+ m.onclick=e=>{if(e.target.id==='modal'||e.target.id==='xcn')m.hidden=true};
+ $('#mrs').onclick=()=>{if(!confirm('Redefinir a senha de ADM para 2506?'))return;gset('adm',{pin:PIN0});toast('Senha de ADM redefinida para 2506.')};
+ m.querySelector('form').onsubmit=async e=>{e.preventDefault();const f=e.target.elements,stores=[];for(let n=1;n<=MAXL;n++){const on=n===1||f['on'+n].checked,name=f['nm'+n].value.trim();if(on||name)stores.push({n,name,on:on?1:0})}
+  const u=Date.now(),h={'Content-Type':'application/json','x-master-pin':pin},t=localStorage.getItem(TK);if(t)h['x-sync-token']=t;let msg='Lojas liberadas e salvas para todos os aparelhos.',er=0;
+  try{const r=await fetch(API,{method:'POST',headers:h,cache:'no-store',body:JSON.stringify({records:[{store:'global',id:'lojas',data:JSON.stringify({stores}),updated:u,deleted:0}]})}),j=await r.json().catch(()=>({}));
+   if(r.status===403){toast('O servidor recusou a senha master.',1);return}if(!r.ok||j.error||!j.saved)throw 0}
+  catch{msg='Salvo só neste aparelho: o banco não respondeu (confira se a pasta functions foi enviada).';er=1}
+  GL.lojas={stores,_u:u,_d:0};gsave();m.hidden=true;toast(msg,er);if(!ADMS)renderHome()}}
+(async()=>{theme();try{await openStore(1)}catch(e){document.body.innerHTML='<p style="padding:30px">Seu navegador bloqueou o armazenamento local (IndexedDB). Saia do modo anônimo.</p>';return}
+ if(!GL.adm.pin&&S().pin)gset('adm',{pin:S().pin});brand();
+ $('#nav').innerHTML='<button id=tg title="Expandir/recolher menu"><i>☰</i><span>Recolher menu</span></button><button id=hm title="Início"><i>🏠</i><span>Início</span></button>'+NAV.map(n=>{const[a,...r]=n[1].split(' ');return `<button data-id=${n[0]} title="${r.join(' ')}"><i>${a}</i><span>${r.join(' ')}</span></button>`}).join('')+'<button id=sup title="Suporte (WhatsApp)"><i>🆘</i><span>Suporte</span></button>'+(isInst()?'':'<button id=ins title="Instalar app"><i>💈</i><span>Instalar app</span></button>');
+ $('#nav').onclick=async e=>{const b=e.target.closest('button');if(!b)return;if(b.id==='tg'){const x=document.body.classList.toggle('exp');localStorage.bdpExp=x?'1':'';return}if(b.id==='hm'){showHome();return}if(b.id==='sup'){supOpen();return}if(b.id==='ins'){if(dp){dp.prompt();await dp.userChoice;dp=null}else alert('Para instalar: no Android/Chrome abra o menu ⋮ e toque em "Instalar app"; no iPhone use Compartilhar > "Adicionar à Tela de Início"; no computador use o ícone de instalar na barra de endereço.');return}go(b.dataset.id)};
+ $('#gs').onkeydown=e=>{if(e.key==='Enter'){go('clients');$('#q').value=e.target.value;$('#q').dispatchEvent(new Event('input'))}};setInterval(tick,20000);$('#modal').onclick=e=>{if(e.target.id==='modal')e.target.hidden=true};$('#sync').onclick=()=>sync();
+ let st=0,pg='';try{st=+sessionStorage.getItem('bp_in')||0;pg=location.hash.slice(1)}catch{}
+ if(!st&&GL.adm.startup==='store')st=+GL.adm.main||1;
+ if(st&&lActive(st))await enter(st,pg);else showHome();
+ setTimeout(()=>$('#splash').classList.add('off'),700);if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+ gsync().then(ch=>{if(ch&&document.body.classList.contains('home')&&!ADMS)renderHome()}).catch(()=>{})})();
 
 let dp;const isInst=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone;
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e});addEventListener('appinstalled',()=>{$('#ins')?.remove();toast('App instalado!')});

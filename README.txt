@@ -11,3 +11,17 @@ PDF: Relatórios > Baixar PDF > "Salvar como PDF" na janela de impressão.
 * Configurações (nome, dados, logo, senha) salvam automaticamente e são sincronizadas pelo banco D1 para todos os aparelhos. Imagens são reduzidas antes de salvar.
 * IMPORTANTE: reenvie também a pasta functions/ ao Cloudflare Pages (a function agora aceita a tabela 'settings').
 * Botão de Suporte (WhatsApp 67 99646-2518) no menu e em Configurações.
+
+--- MULTI-LOJAS (tela inicial / ADM / MASTER) ---
+* Ao abrir o app aparece a TELA INICIAL: [Loja] e [ADM].
+  - Loja: entra no dashboard normal (se houver mais de uma loja liberada, pergunta qual).
+  - ADM: pede nome + senha de ADM (padrão 2506). Mostra o resumo de cada loja, o resumo da loja principal,
+    o relatório de todas/escolhidas (PDF e CSV) e as configurações (loja principal, abrir direto na loja, senha).
+* MASTER (só o criador): botão INVISÍVEL no canto SUPERIOR DIREITO da tela inicial. Toque ali, digite 1989.
+  Marque as lojas liberadas (até 10) e dê nome. Salvar desbloqueio → vale para todos os aparelhos do cliente.
+* Cada loja tem dados separados (clientes, caixa, estoque...). A Loja 1 usa o banco que já existia (nada se perde).
+  No D1 as lojas 2, 3... são gravadas com sufixo @2, @3 (ex.: clients@2).
+* A function /api/salvar recusa gravar em loja não liberada e só aceita liberar loja com a senha master.
+  Para trocar a senha master no servidor: Cloudflare Pages > Settings > Variables > MASTER_PIN.
+  (Se MASTER_PIN não existir, vale 1989.)
+* IMPORTANTE: reenvie a pasta functions/ junto com o resto.

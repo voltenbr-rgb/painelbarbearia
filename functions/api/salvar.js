@@ -1,8 +1,16 @@
 // Cloudflare Pages Function — rota /api/salvar
 // Binding D1 esperado: DB (banco "banco-volten")
-// Opcional: variável de ambiente SYNC_TOKEN (senha de sincronização)
+// Variáveis de ambiente opcionais:
+//   SYNC_TOKEN  → senha de sincronização
+//   MASTER_PIN  → senha do MASTER (padrão 1989). Só quem tem essa senha consegue liberar lojas.
+//
+// Multi-lojas: a Loja 1 usa os nomes de store normais (clients, finance...).
+// As lojas 2, 3... usam sufixo "@N" (clients@2, finance@3...).
+// O registro global/lojas (lista de lojas liberadas) só é gravado com o header x-master-pin correto,
+// e gravações em lojas 2+ são recusadas enquanto a loja não estiver liberada.
 
 const STORES = ["clients", "barbers", "services", "appointments", "finance", "products", "stock", "settings"];
+const GLOBAL_IDS = ["lojas", "adm"];
 
 const json = (obj, status = 200) =>
   new Response(JSON.stringify(obj), {
@@ -18,6 +26,19 @@ function naoAutorizado(context) {
   return null;
 }
 
+const masterOk = (context) =>
+  context.request.headers.get("x-master-pin") === (context.env.MASTER_PIN || "1989");
+
+// "clients" → {base:"clients", n:1} · "clients@2" → {base:"clients", n:2} · "global" → {base:"global", n:1}
+function parseStore(s) {
+  const m = /^([a-z]+)(?:@(\d{1,2}))?$/.exec(String(s || ""));
+  if (!m) return null;
+  if (m[1] === "global") return m[2] ? null : { base: "global", n: 1 };
+  const n = m[2] ? Number(m[2]) : 1;
+  if (!STORES.includes(m[1]) || n < 1 || n > 20) return null;
+  return { base: m[1], n };
+}
+
 // Cria a tabela automaticamente na primeira chamada
 const garantirTabela = (db) =>
   db.prepare(
@@ -27,17 +48,45 @@ const garantirTabela = (db) =>
     "PRIMARY KEY (store, id))"
   ).run();
 
-// GET /api/salvar  → lista os registros (opcional: ?store=clients&since=1700000000000)
+// Lojas liberadas pelo master (a Loja 1 sempre está liberada)
+async function lojasAtivas(db) {
+  const on = [1];
+  const row = await db
+    .prepare("SELECT data FROM registros WHERE store = 'global' AND id = 'lojas' AND deleted = 0")
+    .first();
+  try {
+    const j = JSON.parse((row && row.data) || "null");
+    if (j && Array.isArray(j.stores)) {
+      j.stores.forEach((x) => {
+        if (x && x.on && Number(x.n) > 1) on.push(Number(x.n));
+      });
+    }
+  } catch (e) { /* config inválida: só Loja 1 */ }
+  return on;
+}
+
+// GET /api/salvar
+//   ?verify=master            → confere o header x-master-pin
+//   ?loja=1|2|3...            → registros daquela loja (a loja 1 = sem sufixo)
+//   ?store=global             → configurações globais (lojas liberadas / ADM)
+//   ?store=clients&since=...  → filtros antigos continuam funcionando
 export async function onRequestGet(context) {
   try {
     const negado = naoAutorizado(context);
     if (negado) return negado;
 
+    const url = new URL(context.request.url);
+    if (url.searchParams.get("verify") === "master") {
+      return masterOk(context)
+        ? json({ success: true, master: true })
+        : json({ error: "Senha master inválida" }, 403);
+    }
+
     const db = context.env.DB;
     await garantirTabela(db);
 
-    const url = new URL(context.request.url);
     const store = url.searchParams.get("store");
+    const loja = Number(url.searchParams.get("loja") || 0);
     const since = Number(url.searchParams.get("since") || 0);
 
     let sql = "SELECT store, id, data, updated, deleted FROM registros WHERE updated > ?";
@@ -45,6 +94,12 @@ export async function onRequestGet(context) {
     if (store) {
       sql += " AND store = ?";
       params.push(store);
+    }
+    if (loja === 1) {
+      sql += " AND store NOT LIKE '%@%' AND store <> 'global'";
+    } else if (loja > 1) {
+      sql += " AND store LIKE ?";
+      params.push("%@" + loja);
     }
     const { results } = await db.prepare(sql).bind(...params).all();
 
@@ -77,6 +132,13 @@ export async function onRequestPost(context) {
     await garantirTabela(db);
 
     const lista = Array.isArray(body.records) ? body.records : [body];
+
+    // Só o master altera a lista de lojas liberadas
+    if (lista.some((r) => r && r.store === "global" && r.id === "lojas") && !masterOk(context)) {
+      return json({ error: "Somente o master pode liberar lojas." }, 403);
+    }
+
+    let ativas = null;
     const stmt = db.prepare(
       "INSERT INTO registros (store, id, data, updated, deleted) VALUES (?, ?, ?, ?, ?) " +
       "ON CONFLICT(store, id) DO UPDATE SET data = excluded.data, " +
@@ -85,8 +147,20 @@ export async function onRequestPost(context) {
     );
 
     const lote = [];
+    let recusados = 0;
     for (const r of lista) {
-      if (!STORES.includes(r.store) || !r.id) continue;
+      if (!r || !r.id) continue;
+      const ps = parseStore(r.store);
+      if (!ps) continue;
+      if (ps.base === "global") {
+        if (!GLOBAL_IDS.includes(String(r.id))) continue;
+      } else if (ps.n > 1) {
+        if (!ativas) ativas = await lojasAtivas(db);
+        if (!ativas.includes(ps.n)) {
+          recusados++;
+          continue;
+        }
+      }
       const dados = typeof r.data === "string" ? r.data : JSON.stringify(r.data ?? null);
       lote.push(stmt.bind(r.store, String(r.id), dados, Number(r.updated) || Date.now(), r.deleted ? 1 : 0));
     }
@@ -95,7 +169,7 @@ export async function onRequestPost(context) {
       await db.batch(lote.slice(i, i + 50));
     }
 
-    return json({ success: true, saved: lote.length });
+    return json({ success: true, saved: lote.length, rejected: recusados });
   } catch (err) {
     return json({ error: err.message }, 500);
   }

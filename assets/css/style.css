@@ -89,3 +89,22 @@ body[data-theme=light] .hlogo{background:#fff;border:1px solid var(--bd)}
 @media(max-width:760px){.hlogo{width:48px;height:48px;border-radius:12px}.hd{gap:12px}}
 
 #lq[hidden]{display:none}#nav #sup{margin-top:6px}
+
+/* ===== Multi-lojas: tela inicial, ADM, master ===== */
+body.home #side,body.home main{display:none}body:not(.home) #home{display:none}body.home{padding-left:0!important}
+#home{flex:1;min-width:0;position:relative}
+#mstr{position:fixed;top:0;right:0;width:64px;height:64px;opacity:0;background:transparent;border:0;cursor:default;z-index:30;-webkit-tap-highlight-color:transparent}
+.hm{max-width:1000px;margin:0 auto;padding:28px 16px 60px;width:100%}
+.hlg{width:96px;height:96px;object-fit:contain;border-radius:22px;padding:6px;background:rgba(255,255,255,.08);display:block;margin:28px auto 12px}
+body[data-theme=light] .hlg{background:#fff;border:1px solid var(--bd)}
+.hm h1{text-align:center;margin:0;font-size:34px}.hm>p.sub{text-align:center;margin:6px 0 0}
+.hcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin:30px auto;max-width:700px}
+.hc{display:flex;flex-direction:column;align-items:center;gap:6px;padding:36px 20px;border:1px solid var(--bd);border-radius:20px;background:var(--card);color:var(--tx);cursor:pointer;font:inherit;transition:.2s}
+.hc i{font-style:normal;font-size:48px}.hc b{font-size:22px}.hc small{color:var(--mu)}.hc:hover{transform:translateY(-3px);border-color:var(--ac);box-shadow:0 14px 34px -18px var(--ac)}
+.hf{text-align:center;font-size:12px;margin-top:30px}
+.ck{display:inline-flex;align-items:center;gap:6px;margin:4px 14px 4px 0;color:var(--tx)}.ck input{width:auto}
+.ah{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}.ah h2{margin:0;flex:1}
+#synbar #lojatag{margin-right:auto;color:var(--ac)}
+.rtot td{font-weight:700;border-top:2px solid var(--bd)}
+
+.row2[hidden]{display:none}
