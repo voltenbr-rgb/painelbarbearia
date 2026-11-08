@@ -72,3 +72,10 @@ PDF: Relatórios > Baixar PDF > "Salvar como PDF" na janela de impressão.
 * Backup e restauração foram para o ADM: exporta todas as lojas num arquivo e restaura numa loja escolhida (aceita backups antigos de uma loja só).
 * As preferências do ADM são conferidas a cada 30 s (mais leve para o plano gratuito do Cloudflare); só baixam de novo quando algo mudou.
 * O botão Suporte da tela inicial some dentro da área do ADM.
+
+--- AJUSTES (rodada 7) ---
+* Menu: "Caixa" agora fica logo depois do "Dashboard".
+* Caixa > "Movimentações": mostra TODAS as movimentações do dia (dinheiro, PIX, crédito, débito, outros, despesas, retiradas, aportes e saídas do caixa),
+  com hora, tipo, descrição, forma de pagamento e valor (+ verde / - vermelho). Abas para filtrar por forma de pagamento, com contagem e saldo da aba.
+  A "Dinheiro na gaveta" continua contando só o dinheiro físico (PIX e cartão não entram na gaveta).
+* service-worker.js estava vazio; agora cacheia o app para abrir offline (rede primeiro, então atualizações chegam normalmente). /api nunca é cacheada.
