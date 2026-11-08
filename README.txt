@@ -25,3 +25,4 @@ PDF: Relatórios > Baixar PDF > "Salvar como PDF" na janela de impressão.
   Para trocar a senha master no servidor: Cloudflare Pages > Settings > Variables > MASTER_PIN.
   (Se MASTER_PIN não existir, vale 1989.)
 * IMPORTANTE: reenvie a pasta functions/ junto com o resto.
+* O ADM pode renomear cada loja em ADM > Configurações > Nome das lojas (vazio = volta ao nome padrão).
