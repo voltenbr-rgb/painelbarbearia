@@ -146,6 +146,12 @@ export async function onRequestPost(context) {
       "WHERE excluded.updated >= registros.updated"
     );
 
+    // Registros globais (tema, senhas, lojas liberadas): gravação incondicional, com o relógio do servidor.
+    const stmtG = db.prepare(
+      "INSERT INTO registros (store, id, data, updated, deleted) VALUES (?, ?, ?, ?, ?) " +
+      "ON CONFLICT(store, id) DO UPDATE SET data = excluded.data, " +
+      "updated = excluded.updated, deleted = excluded.deleted"
+    );
     const lote = [];
     // Registros globais (tema, senhas, lojas) usam sempre o relógio do servidor
     const stamp = Date.now();
@@ -165,7 +171,7 @@ export async function onRequestPost(context) {
       }
       const dados = typeof r.data === "string" ? r.data : JSON.stringify(r.data ?? null);
       const upd = ps.base === "global" ? stamp : (Number(r.updated) || Date.now());
-      lote.push(stmt.bind(r.store, String(r.id), dados, upd, r.deleted ? 1 : 0));
+      lote.push((ps.base === "global" ? stmtG : stmt).bind(r.store, String(r.id), dados, upd, r.deleted ? 1 : 0));
     }
 
     for (let i = 0; i < lote.length; i += 50) {

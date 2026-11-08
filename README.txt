@@ -52,3 +52,14 @@ PDF: Relatórios > Baixar PDF > "Salvar como PDF" na janela de impressão.
 * Ícone fixo da marca em assets/icons/ (icon-master.png = original 1254px). Gerados: icon-192/512 (cantos transparentes), icon-maskable-192/512 (Android adaptativo),
   apple-touch-icon.png (iPhone) e favicon-48.png. Referenciados em manifest.json e index.html. A logo que cada loja sobe nas Configurações NÃO altera esse ícone.
 * Para trocar no futuro: substitua esses arquivos mantendo os nomes. Quem já instalou precisa desinstalar e instalar de novo.
+
+--- AJUSTES (rodada 4) ---
+* ADM > Configurações: tema, acesso às lojas (com senha / sem senha), senhas das lojas, loja principal, abertura do app e nomes das lojas
+  agora só valem ao tocar em "💾 Salvar configurações". O app confirma no servidor e avisa se não conseguiu gravar.
+  Aparece "Há alterações não salvas" enquanto houver mudança pendente, e o tema fica em pré-visualização até salvar.
+* Correção do "volta sozinho depois de uns 15 s": o servidor ignorava a gravação quando o registro antigo tinha data maior
+  (relógio de algum aparelho adiantado). Agora os registros globais são sempre gravados. REENVIE a pasta functions/.
+* Mensagens ao cliente (WhatsApp): cada mensagem tem os botões "📋 Copiar" e "💬 WhatsApp" lado a lado.
+
+--- AJUSTE (rodada 5) ---
+* Menu lateral: o botão ☰ (Expandir/Recolher menu, que mostra os nomes: Agendamentos, Clientes...) estava cortado no topo em telas baixas. Corrigido; em telas baixas os ícones ficam mais compactos.

@@ -118,3 +118,12 @@ body[data-theme=light] .hlg{background:#fff;border:1px solid var(--bd)}
 .sl:hover{transform:translateX(3px);background:color-mix(in srgb,var(--sc) 20%,var(--card))}
 #hsup{position:fixed;top:14px;left:14px;z-index:30;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;border:1px solid var(--bd);background:var(--card);color:var(--mu);font:inherit;font-size:12px;cursor:pointer;transition:.2s}
 #hsup:hover{color:var(--tx);border-color:var(--ac)}body:not(.home) #hsup{display:none}
+
+/* mensagens WhatsApp: título em cima, Copiar e WhatsApp lado a lado */
+.mrow.w{flex-wrap:wrap;gap:6px;margin:10px 0}.mrow.w>button:first-child{flex:1 1 100%;text-align:left}
+.mrow.w>button:nth-child(n+2){flex:1 1 0;white-space:nowrap;text-align:center}
+
+/* menu lateral: o botão ☰ (expandir) nunca fica cortado; em telas baixas os itens ficam mais compactos e a barra rola */
+@media(min-width:761px){#side{justify-content:flex-start!important}#nav{margin:auto 0}#nav #tg{flex:none}}
+@media(min-width:761px) and (max-height:900px){#nav button{height:40px}#nav{gap:3px}#side{padding:12px 10px}}
+@media(min-width:761px) and (max-height:620px){#nav button{height:36px}}
