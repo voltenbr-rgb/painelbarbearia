@@ -147,6 +147,8 @@ export async function onRequestPost(context) {
     );
 
     const lote = [];
+    // Registros globais (tema, senhas, lojas) usam sempre o relógio do servidor
+    const stamp = Date.now();
     let recusados = 0;
     for (const r of lista) {
       if (!r || !r.id) continue;
@@ -162,14 +164,15 @@ export async function onRequestPost(context) {
         }
       }
       const dados = typeof r.data === "string" ? r.data : JSON.stringify(r.data ?? null);
-      lote.push(stmt.bind(r.store, String(r.id), dados, Number(r.updated) || Date.now(), r.deleted ? 1 : 0));
+      const upd = ps.base === "global" ? stamp : (Number(r.updated) || Date.now());
+      lote.push(stmt.bind(r.store, String(r.id), dados, upd, r.deleted ? 1 : 0));
     }
 
     for (let i = 0; i < lote.length; i += 50) {
       await db.batch(lote.slice(i, i + 50));
     }
 
-    return json({ success: true, saved: lote.length, rejected: recusados });
+    return json({ success: true, saved: lote.length, rejected: recusados, stamp });
   } catch (err) {
     return json({ error: err.message }, 500);
   }

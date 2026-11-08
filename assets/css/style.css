@@ -109,3 +109,12 @@ body[data-theme=light] .hlg{background:#fff;border:1px solid var(--bd)}
 .rtot td{font-weight:700;border-top:2px solid var(--bd)}
 
 .row2[hidden]{display:none}
+
+/* ===== Senhas sem autopreenchimento, lista de lojas, suporte na tela inicial ===== */
+[data-pw]{-webkit-text-security:disc;text-security:disc}
+.sl{display:flex;align-items:center;gap:12px;width:100%;height:60px;padding:0 14px;margin:8px 0;border:1px solid color-mix(in srgb,var(--sc) 35%,var(--bd));border-left:5px solid var(--sc);border-radius:14px;background:color-mix(in srgb,var(--sc) 13%,var(--card));color:var(--tx);font:inherit;font-weight:600;text-align:left;cursor:pointer;transition:.2s}
+.sl i{font-style:normal;flex:none;width:34px;height:34px;border-radius:10px;background:var(--sc);color:#fff;display:grid;place-items:center;font-size:15px}
+.sl span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sl em{font-style:normal;color:var(--mu);font-size:22px}
+.sl:hover{transform:translateX(3px);background:color-mix(in srgb,var(--sc) 20%,var(--card))}
+#hsup{position:fixed;top:14px;left:14px;z-index:30;display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;border:1px solid var(--bd);background:var(--card);color:var(--mu);font:inherit;font-size:12px;cursor:pointer;transition:.2s}
+#hsup:hover{color:var(--tx);border-color:var(--ac)}body:not(.home) #hsup{display:none}

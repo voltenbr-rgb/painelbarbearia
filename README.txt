@@ -35,3 +35,20 @@ PDF: Relatórios > Baixar PDF > "Salvar como PDF" na janela de impressão.
 * Tema: em ADM > Configurações > "Tema do aplicativo" o dono escolhe Escuro ou Claro para todas as lojas e aparelhos.
   O botão de alternar tema saiu das Configurações da loja.
 * Master: o botão do canto superior direito da tela inicial agora tem um pontinho visível (claro no fundo preto, escuro no fundo branco).
+
+--- AJUSTES (rodada 3) ---
+* Sincronização do tema/senhas/modo de acesso entre aparelhos: agora usa o relógio do SERVIDOR (functions/api/salvar.js) em vez do relógio de cada aparelho.
+  Os aparelhos conferem as preferências do ADM a cada 15 segundos. IMPORTANTE: reenvie também a pasta functions/.
+* Escolha da loja: lista padronizada (mesmo tamanho, cor por loja, texto sempre legível).
+* Senha de ADM sempre digitada: os campos de senha deixaram de ser "password" (o navegador não salva nem preenche).
+  Pedem a senha: excluir agendamento/cliente/barbeiro/serviço/produto/lançamento, editar produto/lançamento,
+  editar atendimento concluído e tirar um atendimento do status "Concluído" (isso apagaria o lançamento no financeiro).
+* Botão "💬 Suporte" pequeno no canto superior esquerdo da tela inicial (some dentro da loja).
+* ADM > Configurações > "Acesso às lojas": escolher entre "Senha para entrar na loja" (senha de cada loja) ou "Entrar sem senha".
+  Nas duas opções, excluir itens continua pedindo a senha de ADM.
+* Ícone do app instalado: fixo em assets/icons/ (não muda com a logo que a loja sobe).
+
+--- ÍCONE DO APP INSTALADO ---
+* Ícone fixo da marca em assets/icons/ (icon-master.png = original 1254px). Gerados: icon-192/512 (cantos transparentes), icon-maskable-192/512 (Android adaptativo),
+  apple-touch-icon.png (iPhone) e favicon-48.png. Referenciados em manifest.json e index.html. A logo que cada loja sobe nas Configurações NÃO altera esse ícone.
+* Para trocar no futuro: substitua esses arquivos mantendo os nomes. Quem já instalou precisa desinstalar e instalar de novo.
