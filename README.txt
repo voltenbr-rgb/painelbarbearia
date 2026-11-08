@@ -26,3 +26,12 @@ PDF: Relatórios > Baixar PDF > "Salvar como PDF" na janela de impressão.
   (Se MASTER_PIN não existir, vale 1989.)
 * IMPORTANTE: reenvie a pasta functions/ junto com o resto.
 * O ADM pode renomear cada loja em ADM > Configurações > Nome das lojas (vazio = volta ao nome padrão).
+
+--- AJUSTES FINAIS ---
+* Estoque: removidas as setas de baixar/retirar manualmente. Ficou só ➕ (adicionar ao estoque) e 🛒 (venda, que lança no financeiro).
+  A baixa de estoque acontece no ato da venda (Caixa > Receber pagamento). Editar/excluir produto continua pedindo a senha de ADM.
+* Senha de cada loja: em ADM > Configurações > "Senha de entrada das lojas" o dono define a senha de cada loja (padrão 2506; vazio volta ao padrão).
+  Quem toca em "Loja" só entra com a senha da loja escolhida. O ADM abre qualquer loja sem senha. Sincroniza entre aparelhos (registro global/adm).
+* Tema: em ADM > Configurações > "Tema do aplicativo" o dono escolhe Escuro ou Claro para todas as lojas e aparelhos.
+  O botão de alternar tema saiu das Configurações da loja.
+* Master: o botão do canto superior direito da tela inicial agora tem um pontinho visível (claro no fundo preto, escuro no fundo branco).

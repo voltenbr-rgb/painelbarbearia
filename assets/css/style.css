@@ -93,7 +93,8 @@ body[data-theme=light] .hlogo{background:#fff;border:1px solid var(--bd)}
 /* ===== Multi-lojas: tela inicial, ADM, master ===== */
 body.home #side,body.home main{display:none}body:not(.home) #home{display:none}body.home{padding-left:0!important}
 #home{flex:1;min-width:0;position:relative}
-#mstr{position:fixed;top:0;right:0;width:64px;height:64px;opacity:0;background:transparent;border:0;cursor:default;z-index:30;-webkit-tap-highlight-color:transparent}
+#mstr{position:fixed;top:0;right:0;width:64px;height:64px;background:transparent;border:0;cursor:pointer;z-index:30;-webkit-tap-highlight-color:transparent}
+#mstr::after{content:"";position:absolute;top:20px;right:20px;width:8px;height:8px;border-radius:50%;background:var(--mu);opacity:.75;box-shadow:0 0 0 4px color-mix(in srgb,var(--mu) 20%,transparent);transition:.2s}#mstr:hover::after{opacity:1;background:var(--ac)}
 .hm{max-width:1000px;margin:0 auto;padding:28px 16px 60px;width:100%}
 .hlg{width:96px;height:96px;object-fit:contain;border-radius:22px;padding:6px;background:rgba(255,255,255,.08);display:block;margin:28px auto 12px}
 body[data-theme=light] .hlg{background:#fff;border:1px solid var(--bd)}
